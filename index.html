@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTT</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./javascript.js" defer></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="display">
+                <div class="player" id="one"></div>
+                <div class="player" id="two"></div>
+            </div>
+        </div>
+        <div class="main">
+
+            <dialog>
+                <form method="post">
+                    <div class="section">
+                        <label for="playerName">Name:</label>
+                        <input type="text" id="playerName" name="playerName" required>
+                    </div>
+                    <div class="section">
+                        <label for="playerToken">Token:</label>
+                        <input type="text" id="playerToken" name="playerToken" required>
+                    </div>
+                    <button id="createButton" formmethod="dialog">Create</button>
+                </form>
+            </dialog>
+
+        </div>
+        <div class="footer">
+
+            <div class="buttons">
+                <button class="startGameButton">Start Game</button>
+                <button class="restartGameButton">Restart Game</button>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
