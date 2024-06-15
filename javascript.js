@@ -32,8 +32,15 @@ const displayController = (function () {
             gameBoardDiv.appendChild(cell);
         });
     }
+
+    function setGameDisplay () {
+        const playerOneDiv = document.querySelector("#one");
+        const playerTwoDiv = document.querySelector("#two");
+        playerOneDiv.textContent = `${player1.name}(${player1.token}): ${player1.showScore()}`;
+        playerTwoDiv.textContent = `${player2.name}(${player2.token}): ${player2.showScore()}`;
+    }
     
-    return {displayBoard}
+    return {displayBoard, setGameDisplay}
 })();
 
 //2. player Factory
@@ -102,18 +109,19 @@ const game = (function () {
         if (checkWinPattern(activePlayer.token)) { 
             alert(`${activePlayer.name} won!`)
             activePlayer.addScore();
-            setGameDisplay ();
+            displayController.setGameDisplay ();
             gameBoard.gameboardReset();
             displayController.displayBoard();
             activePlayer = player1;
-            return
+            return true
         } else if (checkTiePattern()) {
             alert("it's a tie!")
             gameBoard.gameboardReset();
             displayController.displayBoard();
             activePlayer = player1;
-            return
+            return true
         }
+        return false
     }
     
     //set and toggle activePlayer
@@ -127,7 +135,7 @@ const game = (function () {
     function playRound(event) { 
         if (!activePlayer.playTurnOnDisplay(event)) {return};
         displayController.displayBoard();
-        checkGameStatus();
+        if (checkGameStatus()) {return};
         switchPlayer();
     }
 
@@ -138,14 +146,7 @@ const game = (function () {
 const StartGameButton = document.querySelector(".startGameButton")
 StartGameButton.addEventListener('click', () => {
     displayController.displayBoard();
-
-    function setGameDisplay () {
-        const playerOneDiv = document.querySelector("#one");
-        const playerTwoDiv = document.querySelector("#two");
-        playerOneDiv.textContent = `${player1.name}(${player1.token}): ${player1.showScore()}`;
-        playerTwoDiv.textContent = `${player2.name}(${player2.token}): ${player2.showScore()}`;
-    }
-    setGameDisplay ();
+    displayController.setGameDisplay ();
 })
 
 //Restart Game Button
