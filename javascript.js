@@ -1,46 +1,13 @@
 //1. gameBoard object (IIFE)
 const gameBoard = (function () {
-    let gameboard = ['', '', '', '', '', '', '', '', '']
+    let gameboard = ['', '', '', '', '', '', '', '', ''];
 
     const gameboardReset = function () {
         gameboard.length = 0;
-        gameboard.push('', '', '', '', '', '', '', '', '')
+        gameboard.push('', '', '', '', '', '', '', '', '');
     }
 
     return {gameboard, gameboardReset}
-})();
-
-//4. Display gameboard
-const displayController = (function () {
-    
-    const main = document.querySelector(".main");
-   
-    function displayBoard () {
-
-        main.replaceChildren();
-        const gameBoardDiv = document.createElement("div");
-        gameBoardDiv.setAttribute("class", "gameboard");
-        main.appendChild(gameBoardDiv);
-
-        // gameBoardDiv.replaceChildren();
-        gameBoard.gameboard.forEach((element, index) => {
-            const cell = document.createElement("div");
-            cell.setAttribute("class", "cell");
-            cell.setAttribute("data-index", `${index}`);
-            cell.textContent = `${element}`
-            cell.addEventListener('click', game.playRound)
-            gameBoardDiv.appendChild(cell);
-        });
-    }
-
-    function setGameDisplay () {
-        const playerOneDiv = document.querySelector("#one");
-        const playerTwoDiv = document.querySelector("#two");
-        playerOneDiv.textContent = `${player1.name}(${player1.token}): ${player1.showScore()}`;
-        playerTwoDiv.textContent = `${player2.name}(${player2.token}): ${player2.showScore()}`;
-    }
-    
-    return {displayBoard, setGameDisplay}
 })();
 
 //2. player Factory
@@ -51,43 +18,43 @@ function createPlayer (name, token) {
         score += 1;
     } 
 
-    function playTurnOnDisplay (event){
-        console.log(event.target.dataset.index);
-        if (!gameBoard.gameboard[event.target.dataset.index]) {
-            gameBoard.gameboard[event.target.dataset.index] = token;
-            // displayController.displayBoard();
-            return true
-        } else {
-            alert("this spot is taken")
-            return false
-        }
-    }
-    return {name, token, showScore, addScore, playTurnOnDisplay}
+    return {name, token, showScore, addScore}
 }
 
-// create two players (global objects)
-// const player1 = createPlayer ("Yev", "x");
-const player1 = (() => {
-    const name = prompt("Player 1 name:")
-    const token = prompt("Player 1 token:")
-    return createPlayer (name, token);
-})();
-// const player2 = createPlayer ("Gabi", "o");
-const player2 = (() => {
-    const name = prompt("Player 2 name:")
-    const token = prompt("Player 2 token:")
-    return createPlayer (name, token);
-})();
+//3. gameFlow object (IIFE)
+const gameController = (function () {
+    // create two players
+    const dialog = document.querySelector("dialog");
+    const createButton = document.querySelector("#StartButton");
+    dialog.showModal();
 
-//3. game object (IIFE)
-const game = (function () {
-    
+    let player1 = "";
+    function getPlayer1 () {return player1} 
+    let player2 = "";
+    function getPlayer2 () {return player2} 
+
+    createButton.addEventListener('click', () => {
+        player1 = createPlayer (document.querySelector("#playerOneName").value, 'x');
+        resetActivePlayer ();
+        player2 = createPlayer (document.querySelector("#playerTwoName").value, 'o');
+    })
+    //set, reset and toggle activePlayer
+    let activePlayer = player1; 
+    const switchPlayer = function () {
+        activePlayer = activePlayer == player1 ? player2 : player1; 
+        displayController.setTurnDisplay();
+    }
+    const getActivePlayer = () => activePlayer;
+
+    function resetActivePlayer () {
+        activePlayer = player1;
+        displayController.setTurnDisplay(); 
+    }
     //declare 8 potential Win patterns
     const winPatterns = [[0, 1, 2], [3, 4, 5], [6, 7, 8], //rows
                         [0 ,3, 6], [1, 4, 7], [2, 5, 8], //columns
                         [0, 4, 8], [2, 4, 6] // diagonal
     ]
-
     //check for one of the 8 Win patterns on the gameboard
     function checkWinPattern (token) {
         for (let pattern of winPatterns) {
@@ -103,7 +70,6 @@ const game = (function () {
     function checkTiePattern () {
         return gameBoard.gameboard.every((item)=> item !== '')
     }
-
     //check for Win or Tie and end Game if triggered
     function checkGameStatus () {
         if (checkWinPattern(activePlayer.token)) { 
@@ -112,46 +78,83 @@ const game = (function () {
             displayController.setGameDisplay ();
             gameBoard.gameboardReset();
             displayController.displayBoard();
-            activePlayer = player1;
+            resetActivePlayer ();
             return true
         } else if (checkTiePattern()) {
             alert("it's a tie!")
             gameBoard.gameboardReset();
             displayController.displayBoard();
-            activePlayer = player1;
+            resetActivePlayer ();
             return true
         }
         return false
     }
-    
-    //set and toggle activePlayer
-    let activePlayer = player1; 
-    const switchPlayer = function () {
-        activePlayer = activePlayer == player1 ? player2 : player1; 
+    //playTurn function
+    function playTurn (event){
+        console.log(event.target.dataset.index);
+        if (!gameBoard.gameboard[event.target.dataset.index]) {
+            gameBoard.gameboard[event.target.dataset.index] = activePlayer.token;
+            return true
+        } else {
+            alert("this spot is taken")
+            return false
+        }
     }
-    const getActivePlayer = () => activePlayer;
-
     //play a single round function
     function playRound(event) { 
-        if (!activePlayer.playTurnOnDisplay(event)) {return};
+        if (!playTurn(event)) {return};
         displayController.displayBoard();
         if (checkGameStatus()) {return};
         switchPlayer();
     }
 
-    return {getActivePlayer, playRound}
+    return {resetActivePlayer, getActivePlayer, playRound, getPlayer1, getPlayer2}
 })();
 
-//Start Game Button
-const StartGameButton = document.querySelector(".startGameButton")
-StartGameButton.addEventListener('click', () => {
-    displayController.displayBoard();
-    displayController.setGameDisplay ();
-})
+//4. Display gameboard and gameDisplay
+const displayController = (function () {
+   //display gameBoard
+    const main = document.querySelector(".main");
+    function displayBoard () {
+        main.replaceChildren();
+        const gameBoardDiv = document.createElement("div");
+        gameBoardDiv.setAttribute("class", "gameboard");
+        main.appendChild(gameBoardDiv);
 
-//Restart Game Button
-const RestartGameButton = document.querySelector(".restartGameButton")
-RestartGameButton.addEventListener('click', () => {
-    gameBoard.gameboardReset();
-    displayController.displayBoard();
-})
+        gameBoard.gameboard.forEach((element, index) => {
+            const cell = document.createElement("div");
+            cell.setAttribute("class", "cell");
+            cell.setAttribute("data-index", `${index}`);
+            cell.textContent = `${element}`
+            cell.addEventListener('click', gameController.playRound)
+            gameBoardDiv.appendChild(cell);
+        });
+    }
+    //display gameDisplay
+    function setGameDisplay () {
+        const playerOneDiv = document.querySelector("#one");
+        const playerTwoDiv = document.querySelector("#two");
+        playerOneDiv.textContent = `${gameController.getPlayer1().name}(${gameController.getPlayer1().token}): ${gameController.getPlayer1().showScore()}`;
+        playerTwoDiv.textContent = `${gameController.getPlayer2().name}(${gameController.getPlayer2().token}): ${gameController.getPlayer2().showScore()}`;
+    }
+    
+    function setTurnDisplay () {
+        const turnDisplayDiv = document.querySelector(".turnDisplay")
+        turnDisplayDiv.textContent = `${gameController.getActivePlayer().name}'s turn`
+    }
+    //Start Game Button
+    const StartGameButton = document.querySelector(".startGameButton")
+    StartGameButton.addEventListener('click', () => {
+        displayController.displayBoard();
+        displayController.setGameDisplay ();
+        displayController.setTurnDisplay (); 
+    })
+    //Restart Game Button
+    const RestartGameButton = document.querySelector(".restartGameButton")
+    RestartGameButton.addEventListener('click', () => {
+        gameBoard.gameboardReset();
+        displayController.displayBoard();
+    })
+
+    return {displayBoard, setGameDisplay, setTurnDisplay}
+})();
